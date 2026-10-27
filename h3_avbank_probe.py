@@ -64,8 +64,11 @@ def _apply_merge_patch():
             + [r["latent"] for r in refs if "latent" in r])
         # audio reference latents ride the same payload (Motion-Context's
         # timeline audio ref depends on this; harmless when absent)
-        aud = [r["audio_latent"] for r in refs
-               if r.get("audio_latent") is not None]
+        # keyframe audio guides first (layout order), then reference audio.
+        # Refs-only dropped audio guides and broke the packed audio rows.
+        aud = ([k["audio_latent"] for k in kf if k.get("audio_latent") is not None]
+               + [r["audio_latent"] for r in refs
+                  if r.get("audio_latent") is not None])
         if aud:
             payload["cond_audio_latents"] = aud
         # frame_count only when the graph supplied one - overwriting a value
